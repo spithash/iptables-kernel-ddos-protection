@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#Block Invalid Packets
+### 1: Drop invalid packets ### 
 iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
 
-#Block New Packets That Are Not SYN
+### 2: Drop TCP packets that are new and are not SYN ### 
 iptables -t mangle -A PREROUTING -p tcp ! --syn -m conntrack --ctstate NEW -j DROP
 
-#Block Uncommon MSS Values
+### 3: Drop SYN packets with suspicious MSS value ### 
 iptables -t mangle -A PREROUTING -p tcp -m conntrack --ctstate NEW -m tcpmss ! --mss 536:65535 -j DROP
 
-#Block Packets With Bogus TCP Flags
+### 4: Block packets with bogus TCP flags ### 
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,RST FIN,RST -j DROP
@@ -18,7 +18,7 @@ iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,URG URG -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
 
-#Block Packets From Private Subnets (Spoofing)
+### 5: Block spoofed packets ### 
 iptables -t mangle -A PREROUTING -s 224.0.0.0/3 -j DROP
 iptables -t mangle -A PREROUTING -s 169.254.0.0/16 -j DROP
 iptables -t mangle -A PREROUTING -s 172.16.0.0/12 -j DROP
@@ -29,11 +29,11 @@ iptables -t mangle -A PREROUTING -s 0.0.0.0/8 -j DROP
 iptables -t mangle -A PREROUTING -s 240.0.0.0/5 -j DROP
 iptables -t mangle -A PREROUTING -s 127.0.0.0/8 ! -i lo -j DROP
 
-#Drop all ICMP packets
+### 6: Drop ICMP (you usually don't need this protocol) ### 
 iptables -t mangle -A PREROUTING -p icmp -j DROP
 
-#Reject connections from hosts that have more than 80 established connections
+### 7: Limit connections per source IP (80 in our case, you can adjust that value to your needs) ### 
 iptables -A INPUT -p tcp -m connlimit --connlimit-above 80 -j REJECT --reject-with tcp-reset
 
-#Block fragmented packets
+### 8: Drop fragments in all chains ### 
 iptables -t mangle -A PREROUTING -f -j DROP
