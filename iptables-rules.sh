@@ -18,7 +18,7 @@ iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,URG URG -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
 iptables -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
 
-### 5: Block spoofed packets ### 
+### 5: Block spoofed packets ### You might want to adjust these if you're running Docker containers. ###
 iptables -t mangle -A PREROUTING -s 224.0.0.0/3 -j DROP
 iptables -t mangle -A PREROUTING -s 169.254.0.0/16 -j DROP
 iptables -t mangle -A PREROUTING -s 172.16.0.0/12 -j DROP
